@@ -1,0 +1,307 @@
+/*================================================*/
+
+/*  III. QUERY */
+/********* A. BASIC QUERY *********/
+-- 1. 
+   -- a. 
+    SELECT * 
+	FROM student 
+	ORDER BY id;
+   -- b.
+    SELECT * 
+	FROM student 
+	ORDER BY gender;
+   -- c. 
+    SELECT * 
+	FROM student 
+	ORDER BY birthday ASC, scholarship DESC;
+	
+-- 2.
+  SELECT * 
+  FROM subject 
+  WHERE name LIKE 'T%';
+
+-- 3.
+  SELECT * 
+  FROM student 
+  WHERE name LIKE '%i';
+  
+-- 4. 
+  SELECT * 
+  FROM faculty 
+  WHERE name LIKE '_n%'; 
+  
+-- 5.
+  SELECT * 
+  FROM student 
+  WHERE name lIKE '%Thị%';
+
+-- 6.
+  SELECT * 
+  FROM student 
+  WHERE name BETWEEN 'A' AND 'M' 
+  ORDER BY name;
+ 
+-- 7.
+  SELECT * 
+  FROM student 
+  WHERE scholarship > 100000 
+  ORDER BY faculty_id DESC;
+
+-- 8.
+  SELECT * 
+  FROM student 
+  WHERE scholarship >= 150000 AND hometown = 'Hà Nội';
+
+-- 9.
+  SELECT * 
+  FROM student 
+  WHERE birthday BETWEEN TO_DATE('01/01/1991', 'DD/MM/YYYY')AND TO_DATE('05/06/1992', 'DD/MM/YYYY');
+
+-- 10.
+  SELECT * 
+  FROM student 
+  WHERE scholarship >= 80000 AND scholarship <= 150000;
+
+-- 11. 
+  SELECT * 
+  FROM subject 
+  WHERE lesson_quantity > 30 AND lesson_quantity < 45;
+  
+-------------------------------------------------------------------
+
+/********* B. CALCULATION QUERY *********/
+
+-- 1.
+  SELECT id,gender,faculty_id,
+  (CASE WHEN scholarship > 500000 THEN 'Học bổng cao' WHEN scholarship <= 500000 THEN 'Mức trung bình' END)scholarship_level 
+  FROM student
+  WHERE scholarship IS NOT NULL;
+
+-- 2.
+  SELECT COUNT(id) AS total 
+  FROM student;
+
+-- 3.
+  SELECT gender, COUNT(gender) AS total 
+  FROM student 
+  GROUP BY gender;
+
+-- 4.
+  SELECT f.name Faculty_Name, COUNT(s.faculty_id) total_student 
+  FROM student s, faculty f 
+  WHERE s.faculty_id =f.id 
+  GROUP BY s.faculty_id, f.name ;
+
+-- 5.
+  SELECT s.name Subject_Name, COUNT(e.subject_id) total_student 
+  FROM subject s, exam_management e 
+  WHERE s.id =e.subject_id 
+  GROUP BY e.subject_id, s.name;
+
+-- 6.
+  SELECT s.id Student_id, s.name Studentt_Name, COUNT( DISTINCT e.subject_id) total_subject 
+  FROM student s, exam_management e 
+  WHERE s.id =e.student_id 
+  GROUP BY s.id,s.name;
+
+-- 7.
+  SELECT f.name Faculty_Name, COUNT(s.scholarship) total_scholarship 
+  FROM student s, faculty f 
+  WHERE s.faculty_id =f.id 
+  GROUP BY s.faculty_id, f.name;
+
+-- 8.
+  SELECT f.name Faculty_Name, MAX(s.scholarship) Max_scholarship 
+  FROM student s, faculty f 
+  WHERE s.faculty_id =f.id AND s.scholarship IS NOT NULL 
+  GROUP BY f.name;
+
+-- 9.
+  SELECT f.id, f.name Faculty_Name,COUNT(CASE WHEN s.gender = 'Nữ' THEN 1 END) WOMAN , 
+  COUNT(CASE WHEN s.gender = 'Nam' THEN 1 END) MAN 
+  FROM student s, faculty f WHERE s.faculty_id =f.id 
+  GROUP BY f.id,f.name ORDER BY f.id;
+
+-- 10.
+  SELECT COUNT(CASE WHEN TRUNC(TO_NUMBER(SYSDATE - TO_DATE(birthday)) / 365.25) <= 30 THEN 1 END) Numer_Student_equal_below_30, 
+  COUNT(CASE WHEN TRUNC(TO_NUMBER(SYSDATE - TO_DATE(birthday)) / 365.25) > 30 THEN 1 END) Numer_Student_equal_over_30 
+  FROM student;
+
+-- 11.
+  SELECT hometown Place_At_least_2_Student 
+  FROM student 
+  GROUP BY hometown 
+  HAVING COUNT(hometown)>=2 
+  ORDER BY hometown;
+
+-- 12.
+  SELECT s.id Student_id, s.name Name_reexame_at_least_2_times 
+  FROM student s, exam_management e 
+  WHERE s.id =e.student_id 
+  GROUP BY s.id,s.name 
+  HAVING COUNT(CASE WHEN e.number_of_exam_taking = 2 THEN 1 END)>=2 
+  ORDER BY s.id;
+
+-- 13.
+  SELECT s.id Student_id, s.name Name_avg_1_attemp_over_7 
+  FROM student s, exam_management e 
+  WHERE s.id =e.student_id 
+  GROUP BY s.id,s.name,s.gender 
+  HAVING AVG(CASE WHEN e.number_of_exam_taking = 1 THEN e.mark END)>7 AND s.gender ='Nam' 
+  ORDER BY s.id;
+
+-- 14.
+  SELECT s.id Student_id, s.name Name_fail_at_least_2sub 
+  FROM student s, exam_management e 
+  WHERE s.id =e.student_id 
+  GROUP BY s.id,s.name 
+  HAVING COUNT(CASE WHEN e.number_of_exam_taking = 1 AND e.mark <=4 THEN 1 END)>=2 
+  ORDER BY s.id;
+
+-- 15.
+  SELECT f.id,f.name Faculty_Name 
+  FROM student s, faculty f 
+  WHERE s.faculty_id =f.id 
+  GROUP BY f.id,f.name 
+  HAVING COUNT(CASE WHEN s.gender = 'Nam' THEN 1 END)>2 
+  ORDER BY f.id,f.name;
+
+-- 16.
+  SELECT f.id, f.name Faculty_Name 
+  FROM student s, faculty f 
+  WHERE s.faculty_id =f.id 
+  GROUP BY f.id,f.name 
+  HAVING COUNT(CASE WHEN s.scholarship >= 200000 AND s.scholarship <= 300000 THEN 1 END)= 2 ORDER BY f.id;
+
+-- 17.
+  SELECT * 
+  FROM student 
+  WHERE scholarship =(SELECT MAX(scholarship) FROM student);
+
+
+-------------------------------------------------------------------
+
+/********* C. DATE/TIME QUERY *********/
+
+-- 1.
+  SELECT * 
+  FROM student 
+  WHERE hometown = 'Hà Nội' AND TO_CHAR(birthday,'mm')='02';
+
+-- 2.
+  SELECT id, name, birthday 
+  FROM student 
+  GROUP BY id, name, birthday 
+  HAVING TRUNC(TO_NUMBER(SYSDATE - TO_DATE(birthday)) / 365.25) > 20;
+
+-- 3.
+  SELECT id, name, birthday 
+  FROM student 
+  WHERE TO_CHAR(birthday,'mm')>=1 AND TO_CHAR(birthday,'mm')<=3 AND TO_CHAR(birthday,'YYYY')=1990 ;
+
+-------------------------------------------------------------------
+
+/********* D. JOIN QUERY *********/
+
+-- 1.
+  SELECT s.id, s.name, f.name 
+  FROM student s 
+  LEFT JOIN faculty f 
+  ON s.faculty_id = f.id 
+  WHERE f.name = 'Vật lý' OR f.name = 'Anh - Văn';
+
+-- 2.
+  SELECT s.id, s.name, f.name 
+  FROM student s 
+  LEFT JOIN faculty f 
+  ON s.faculty_id = f.id 
+  WHERE (f.name = 'Anh - Văn' OR f.name = 'Tin học') AND s.gender = 'Nam';
+
+-- 3.
+  SELECT s.id, s.name,e.mark 
+  FROM student s 
+  RIGHT JOIN exam_management e 
+  ON e.student_id = s.id 
+  LEFT JOIN subject su 
+  ON e.subject_id = su.id WHERE e.mark = (SELECT MAX(mark) 
+  FROM exam_management exa , subject subj 
+  WHERE exa.subject_id = subj.id AND subj.name = 'Cơ sở dữ liệu' 
+  AND exa.number_of_exam_taking = 1) AND e.number_of_exam_taking = 1 AND su.name = 'Cơ sở dữ liệu';
+
+-- 4.
+  SELECT * 
+  FROM student s 
+  LEFT JOIN faculty f 
+  ON s.faculty_id = f.id 
+  WHERE TRUNC(TO_NUMBER(SYSDATE - TO_DATE(s.birthday)) / 365.25) = (SELECT MAX(TRUNC(TO_NUMBER(SYSDATE - TO_DATE(st.birthday)) / 365.25)) 
+  FROM student st , faculty fa WHERE st.faculty_id = fa.id AND fa.name = 'Anh - Văn') AND f.name = 'Anh - Văn';
+
+-- 5.
+  SELECT f.id,f.name 
+  FROM student s 
+  LEFT JOIN faculty f 
+  ON s.faculty_id = f.id 
+  GROUP BY f.id, f.name 
+  HAVING COUNT(s.faculty_id)=(SELECT MAX(COUNT(faculty_id)) 
+  FROM student GROUP BY faculty_id);
+  
+-- 6.
+  SELECT f.id,f.name 
+  FROM student s 
+  LEFT JOIN faculty f ON s.faculty_id = f.id 
+  GROUP BY f.id, f.name 
+  HAVING COUNT(CASE WHEN gender = 'Nữ' THEN 1 END)=(SELECT MAX(COUNT(CASE WHEN gender = 'Nữ' THEN 1 END)) 
+  FROM student GROUP BY faculty_id ,gender);
+
+-- 7.
+  SELECT e.student_id, s.name, e.subject_id, su.name, e.mark
+  FROM exam_management e 
+  LEFT JOIN
+                (SELECT  exa.subject_id subject_id, MAX(exa.mark) AS maxMarks
+                 FROM exam_management exa
+                 GROUP BY exa.subject_id) s1
+  ON s1.subject_id = e.subject_id AND  s1.maxMarks = e.mark
+  RIGHT OUTER JOIN student s ON s.id = e.student_id
+  RIGHT OUTER JOIN subject su ON su.id = e.subject_id
+  WHERE s1.subject_id = e.subject_id AND  s1.maxMarks = e.mark
+  ORDER BY e.subject_id;
+
+-- 8.
+  SELECT f.id, f.name
+  FROM faculty f 
+  LEFT JOIN student s
+  ON f.id = s.faculty_id
+  WHERE s.name IS NULL
+  GROUP BY f.id, f.name,s.name;
+
+-- 9.
+  SELECT e.student_id student_id, s.name
+  FROM exam_management e 
+  LEFT JOIN subject s1
+  ON e.subject_id = s1.id
+  LEFT OUTER JOIN student s
+  ON e.student_id = s.id 
+  GROUP BY e.student_id,s.name
+  HAVING COUNT(CASE WHEN s1.name = 'Cơ sở dữ liệu' THEN 1 END) = 0;
+
+-- 10.
+  SELECT S1.id, S1.name,S1.subject_id,S1.subName
+  FROM
+  (SELECT e.student_id id,su.name subName, s.name name,e.subject_id subject_id,e.number_of_exam_taking num
+  FROM exam_management e
+  LEFT JOIN student s
+  ON s.id = e.student_id
+  LEFT JOIN subject su
+  ON e.subject_id = su.id
+  WHERE e.number_of_exam_taking = 2
+  GROUP BY e.student_id, s.name ,e.subject_id,e.number_of_exam_taking,su.name) S1
+  LEFT JOIN 
+     ( SELECT e.student_id id,e.subject_id subject_id,e.number_of_exam_taking num
+  FROM exam_management e
+  WHERE e.number_of_exam_taking = 1
+  GROUP BY e.student_id,e.subject_id,e.number_of_exam_taking) S2
+  ON S1.subject_id = S2.subject_id AND S1.id = S2.id
+  WHERE s2.num IS NULL
+  GROUP BY s1.subject_id,s1.id, s1.name,s1.num,s2.num,S1.subName
+  ORDER BY S1.id;
